@@ -108,5 +108,16 @@ namespace StockInformation.Models.Service
         {
             return this.conn.Execute("delete from stock_info where code=@code and date=@date;", value);
         }
+
+        /// <summary>
+        /// Query Stock Information by code
+        /// </summary>
+        /// <param name="code">company code</param>
+        /// <param name="lastdays">last day to search</param>
+        /// <returns>data of last days</returns>
+        public IEnumerable<Stock_info> QueryStockInfo(string code, int lastdays)
+        {
+            return this.conn.Query<Stock_info>($"select * from stock_info where code=@code and date >= date( 'now', '-{lastdays} days');", new { code = code });
+        }
     }
 }
