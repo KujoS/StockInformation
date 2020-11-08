@@ -145,7 +145,10 @@ namespace StockInformation.Controllers
                 max.IncreasingPropertyName = "Dividend_yield";
 
                 resp.Result = true;
-                resp.Info = max.GetRange();
+                var info = max.GetRange();
+                resp.StartDate = info.ElementAt(0).Date;
+                resp.Days = info.Count();
+                resp.EndDate = info.ElementAt(resp.Days - 1).Date;
             }
             catch (Exception ex)
             {

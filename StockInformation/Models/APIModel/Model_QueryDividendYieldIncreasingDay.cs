@@ -51,9 +51,19 @@ namespace StockInformation.Models.APIModel
             public bool Result { get; set; }
 
             /// <summary>
-            /// Gets or sets the search data
+            /// Gets or sets date of start
             /// </summary>
-            public IEnumerable<Stock_info> Info { get; set; }
+            public string StartDate { get; set; }
+
+            /// <summary>
+            /// Gets or sets end of date
+            /// </summary>
+            public string EndDate { get; set; }
+
+            /// <summary>
+            /// Gets or sets days of period
+            /// </summary>
+            public int Days { get; set; }
 
             /// <summary>
             /// Gets or sets error message
