@@ -10,6 +10,7 @@ namespace StockInformation.Models.DBModel
     using System.Collections.Generic;
     using System.Linq;
     using System.Web;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Database table 'stock_info' model class
@@ -59,11 +60,13 @@ namespace StockInformation.Models.DBModel
         /// <summary>
         /// Gets or sets update time
         /// </summary>
+        [JsonIgnore]
         public DateTime Updatetime { get; set; }
 
         /// <summary>
         /// Gets or sets create time
         /// </summary>
+        [JsonIgnore]
         public DateTime Createtime { get; set; }
     }
 }
