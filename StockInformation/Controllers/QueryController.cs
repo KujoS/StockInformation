@@ -8,7 +8,9 @@ namespace StockInformation.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Web;
     using System.Web.Mvc;
     using Newtonsoft.Json;
@@ -16,7 +18,7 @@ namespace StockInformation.Controllers
     using StockInformation.Models.APIModel;
     using StockInformation.Models.DBModel;
     using StockInformation.Models.Service;
-    
+
     /// <summary>
     /// Query Controller
     /// </summary>
@@ -151,6 +153,93 @@ namespace StockInformation.Controllers
                 resp.ErrorMessage = ex.Message;
             }
 
+            return this.Content(JsonConvert.SerializeObject(resp), "application/json");
+        }
+
+        /// <summary>
+        /// upload a csv file, import to database
+        /// </summary>
+        /// <returns>JSON 格式的回傳值</returns>
+        [HttpPost]
+        public ActionResult UploadStockInfo()
+        {
+            var resp = new Model_UploadStockInfo.Response
+            {
+                Result = false,
+                ErrorMessage = string.Empty
+            };
+
+            var f = Request.Files["files"];
+            foreach (string fileName in Request.Files)
+            {
+                HttpPostedFileBase file = Request.Files[fileName];
+
+                if (file == null)
+                {
+                    resp.ErrorMessage += "無檔案上傳";
+                    continue;
+                }
+                else
+                {
+                    if (!Path.GetExtension(file.FileName).ToUpper().Equals(".CSV"))
+                    {
+                        resp.ErrorMessage += $"{file.FileName}-不支援的檔案, ";
+                        continue;
+                    }
+
+                    List<Stock_info> list = new List<Stock_info>();
+                    using (StreamReader reader = new StreamReader(file.InputStream, System.Text.Encoding.GetEncoding("BIG5")))
+                    {
+                        bool firstline = true;
+                        string date = string.Empty;
+                        while (!reader.EndOfStream)
+                        {
+                            string s_line = reader.ReadLine();
+
+                            if (firstline)
+                            {
+                                firstline = false;
+
+                                s_line = s_line.Replace("\"", string.Empty);
+
+                                string str_date = s_line.Split(' ')[0];
+
+                                var ci = new System.Globalization.CultureInfo("zh-TW", true);
+                                ci.DateTimeFormat.Calendar = new System.Globalization.TaiwanCalendar();
+
+                                if (DateTime.TryParseExact(str_date, "y年MM月dd日", ci, System.Globalization.DateTimeStyles.None, out DateTime temp))
+                                {
+                                    date = temp.ToString("yyyy-MM-dd");
+                                }
+                                else
+                                {
+                                    reader.ReadToEnd();
+                                    resp.ErrorMessage += $"{file.FileName}-讀取檔案錯誤, ";
+                                }
+                            }
+                            else if (date != string.Empty)
+                            {
+                                var stock = s_line.ToStockInfo(date);
+                                if (stock != null)
+                                {
+                                    list.Add(stock);
+                                }
+                            }
+                        }
+                    }
+
+                    if (list.Count() > 0)
+                    {
+                        this.stockinfoSrv.Insert(list.ToArray());
+
+                        resp.Result = true;
+                        resp.ErrorMessage += $"{file.FileName}-檔案上傳成功, ";
+                    }
+                }
+            }
+
+            return this.Content(JsonConvert.SerializeObject(resp), "application/json");
+        }
             return this.Content(JsonConvert.SerializeObject(resp), "application/json");
         }
     }
