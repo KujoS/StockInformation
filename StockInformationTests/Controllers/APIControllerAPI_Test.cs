@@ -25,5 +25,17 @@ namespace StockInformation.Controllers.Tests
 
             Assert.IsNotNull(resp);
         }
+
+        [TestMethod]
+        public void QueryPERatioRank()
+        {
+            QueryController api = new QueryController();
+
+            var resutl = (ContentResult)api.QueryPERatioRank(new Model_QueryPERatioRank.Request { Date = "2020-11-06", RankNumber = 3 });
+            var resp = JsonConvert.DeserializeObject<Model_QueryPERatioRank.Response>(resutl.Content);
+
+
+            Assert.IsNotNull(resp);
+        }
     }
 }
