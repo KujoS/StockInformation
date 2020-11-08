@@ -119,5 +119,16 @@ namespace StockInformation.Models.Service
         {
             return this.conn.Query<Stock_info>($"select * from stock_info where code=@code and date >= date( 'now', '-{lastdays} days');", new { code = code });
         }
+
+        /// <summary>
+        /// Query rank of P/E ratio
+        /// </summary>
+        /// <param name="date">the date to search</param>
+        /// <param name="rankNumber">number of rank</param>
+        /// <returns>rank date of the P/E ratio</returns>
+        public IEnumerable<Stock_info> QueryPERatioRank(string date, int rankNumber)
+        {
+            return this.conn.Query<Stock_info>($"select * from stock_info where date=@date order by pe_rate desc limit {rankNumber}", new { date = date });
+        }
     }
 }

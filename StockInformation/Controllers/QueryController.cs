@@ -63,5 +63,44 @@ namespace StockInformation.Controllers
 
             return this.Content(JsonConvert.SerializeObject(resp), "application/json");
         }
+
+        /// <summary>
+        /// 搜尋指定日期的本益比 前n名公司
+        /// </summary>
+        /// <param name="request">input data</param>
+        /// <returns>JSON 格式的回傳值</returns>
+        [HttpPost]
+        public ActionResult QueryPERatioRank(Model_QueryPERatioRank.Request request)
+        {
+            Model_QueryPERatioRank.Response resp = new Model_QueryPERatioRank.Response();
+            try
+            {
+                if (request == null)
+                {
+                    throw new Exception("無上傳資料");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Date) || DateTime.TryParseExact(request.Date, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime result) == false)
+                {
+                    throw new Exception("參數Date 無效");
+                }
+
+                if (request.RankNumber < 1)
+                {
+                    throw new Exception("RankNumber 無效");
+                }
+
+                var data = this.stockinfoSrv.QueryPERatioRank(request.Date, request.RankNumber);
+                resp.Result = true;
+                resp.Info = data;
+            }
+            catch (Exception ex)
+            {
+                resp.Result = false;
+                resp.ErrorMessage = ex.Message;
+            }
+
+            return this.Content(JsonConvert.SerializeObject(resp), "application/json");
+        }
     }
 }
