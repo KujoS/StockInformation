@@ -131,6 +131,7 @@
     <Compile Include="Models\DBModel\stock_info.cs">
       <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="Models\MaxStrictlyIncreasingRange.cs" />
     <Compile Include="Models\Service\Stock_InfoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
