@@ -12,7 +12,9 @@ namespace StockInformation.Controllers
     using System.Web;
     using System.Web.Mvc;
     using Newtonsoft.Json;
+    using StockInformation.Models;
     using StockInformation.Models.APIModel;
+    using StockInformation.Models.DBModel;
     using StockInformation.Models.Service;
     
     /// <summary>
@@ -87,12 +89,61 @@ namespace StockInformation.Controllers
 
                 if (request.RankNumber < 1)
                 {
-                    throw new Exception("RankNumber 無效");
+                    throw new Exception("參數RankNumber 無效");
                 }
 
                 var data = this.stockinfoSrv.QueryPERatioRank(request.Date, request.RankNumber);
                 resp.Result = true;
                 resp.Info = data;
+            }
+            catch (Exception ex)
+            {
+                resp.Result = false;
+                resp.ErrorMessage = ex.Message;
+            }
+
+            return this.Content(JsonConvert.SerializeObject(resp), "application/json");
+        }
+
+        /// <summary>
+        /// 搜尋日期範圍內的殖利率 嚴格增遞最大區間
+        /// </summary>
+        /// <param name="request">input data</param>
+        /// <returns>JSON 格式的回傳值</returns>
+        [HttpPost]
+        public ActionResult QueryDividendYieldIncreasingDay(Model_QueryDividendYieldIncreasingDay.Request request)
+        {
+            Model_QueryDividendYieldIncreasingDay.Response resp = new Model_QueryDividendYieldIncreasingDay.Response();
+            try
+            {
+                if (request == null)
+                {
+                    throw new Exception("無上傳資料");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.StartDate) || DateTime.TryParseExact(request.StartDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime result) == false)
+                {
+                    throw new Exception("參數StartDate 無效");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.EndDate) || DateTime.TryParseExact(request.EndDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime result2) == false)
+                {
+                    throw new Exception("參數EndDate 無效");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Code))
+                {
+                    throw new Exception("參數Code 無效");
+                }
+
+                var data = this.stockinfoSrv.QueryStockInfo(request.Code, request.StartDate, request.EndDate);
+
+                MaxStrictlyIncreasingRange<Stock_info> max = new MaxStrictlyIncreasingRange<Stock_info>();
+                max.Data = data.OrderBy(c => c.Date);
+                max.IncreasingPropertyName = "Dividend_yield";
+
+                resp.Result = true;
+                resp.Info = max.GetRange();
             }
             catch (Exception ex)
             {

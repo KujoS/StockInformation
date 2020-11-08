@@ -117,7 +117,7 @@ namespace StockInformation.Models.Service
         /// <returns>data of last days</returns>
         public IEnumerable<Stock_info> QueryStockInfo(string code, int lastdays)
         {
-            return this.conn.Query<Stock_info>($"select * from stock_info where code=@code and date >= date( 'now', '-{lastdays} days');", new { code = code });
+            return this.conn.Query<Stock_info>($"select * from stock_info where code=@code and date >= date( 'now', '-{lastdays} days') order by date;", new { code = code });
         }
 
         /// <summary>
@@ -129,6 +129,18 @@ namespace StockInformation.Models.Service
         public IEnumerable<Stock_info> QueryPERatioRank(string date, int rankNumber)
         {
             return this.conn.Query<Stock_info>($"select * from stock_info where date=@date order by pe_rate desc limit {rankNumber}", new { date = date });
+        }
+
+        /// <summary>
+        /// Query stock information by rang of date
+        /// </summary>
+        /// <param name="code">company code</param>
+        /// <param name="startdate">start date</param>
+        /// <param name="enddate">end date</param>
+        /// <returns>data of stock information </returns>
+        public IEnumerable<Stock_info> QueryStockInfo(string code, string startdate, string enddate)
+        {
+            return this.conn.Query<Stock_info>($"select * from stock_info where code=@code and date>=@startdate and date<=@enddate order by date;", new { code = code, startdate = startdate, enddate = enddate });
         }
     }
 }
