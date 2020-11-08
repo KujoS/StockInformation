@@ -126,6 +126,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\APIModel\Model_AutoUpdateStockInfo.cs" />
     <Compile Include="Models\APIModel\Model_UploadStockInfo.cs" />
     <Compile Include="Models\APIModel\Model_QueryDividendYieldIncreasingDay.cs" />
     <Compile Include="Models\APIModel\Model_QueryPERatioRank.cs" />

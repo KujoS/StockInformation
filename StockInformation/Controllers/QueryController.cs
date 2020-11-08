@@ -240,6 +240,103 @@ namespace StockInformation.Controllers
 
             return this.Content(JsonConvert.SerializeObject(resp), "application/json");
         }
+
+        /// <summary>
+        /// 輸入一個日期區間 自動將資料從台灣證券交易所匯入至DB
+        /// </summary>
+        /// <param name="request">input data</param>
+        /// <returns>JSON 格式的回傳值</returns>
+        [HttpPost]
+        public ActionResult AutoUpdateStockInfo(Model_AutoUpdateStockInfo.Request request)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            string downloadLink = "https://www.twse.com.tw/exchangeReport/BWIBBU_d?response=csv&date={0}&selectType=ALL";
+            string date_format = "yyyyMMdd";
+
+            Model_AutoUpdateStockInfo.Response resp = new Model_AutoUpdateStockInfo.Response();
+            try
+            {
+                if (request == null)
+                {
+                    throw new Exception("無上傳資料");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.StartDate) || DateTime.TryParseExact(request.StartDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime tempDT) == false)
+                {
+                    throw new Exception("參數StartDate 無效");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.EndDate) || DateTime.TryParseExact(request.EndDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime tempDT2) == false)
+                {
+                    throw new Exception("參數EndDate 無效");
+                }
+
+                for (var day = tempDT; day.Date <= tempDT2.Date; day = day.AddDays(1))
+                {
+                    string download = string.Format(downloadLink, day.ToString(date_format));
+                    List<Stock_info> list = new List<Stock_info>();
+                    using (System.Net.WebClient client = new System.Net.WebClient())
+                    {
+                        using (Stream stream = client.OpenRead(download))
+                        {
+                            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.GetEncoding("BIG5")))
+                            {
+                                bool firstline = true;
+                                string date = string.Empty;
+                                while (!reader.EndOfStream)
+                                {
+                                    string s_line = reader.ReadLine();
+
+                                    if (firstline)
+                                    {
+                                        firstline = false;
+
+                                        s_line = s_line.Replace("\"", string.Empty);
+
+                                        string str_date = s_line.Split(' ')[0];
+
+                                        var ci = new System.Globalization.CultureInfo("zh-TW", true);
+                                        ci.DateTimeFormat.Calendar = new System.Globalization.TaiwanCalendar();
+
+                                        if (DateTime.TryParseExact(str_date, "y年MM月dd日", ci, System.Globalization.DateTimeStyles.None, out DateTime temp))
+                                        {
+                                            date = temp.ToString("yyyy-MM-dd");
+                                        }
+                                        else
+                                        {
+                                            reader.ReadToEnd();
+                                            resp.ErrorMessage += $"{day.ToString(date_format)}-讀取檔案錯誤, ";
+                                        }
+                                    }
+                                    else if (date != string.Empty)
+                                    {
+                                        var stock = s_line.ToStockInfo(date);
+                                        if (stock != null)
+                                        {
+                                            list.Add(stock);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (list.Count() > 0)
+                    {
+                        this.stockinfoSrv.Insert(list.ToArray());
+
+                        resp.Result = true;
+                        resp.ErrorMessage += $"{day.ToString(date_format)}-檔案上傳成功, ";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                resp.Result = false;
+                resp.ErrorMessage = ex.Message;
+            }
+
             return this.Content(JsonConvert.SerializeObject(resp), "application/json");
         }
     }
