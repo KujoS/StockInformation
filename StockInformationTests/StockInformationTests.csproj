@@ -85,6 +85,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Controllers\APIControllerAPI_Test.cs" />
+    <Compile Include="Models\MaxStrictlyIncreasingRangeAPI_Test.cs" />
     <Compile Include="Models\Service\Stock_InfoServiceSqliteTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
