@@ -37,5 +37,17 @@ namespace StockInformation.Controllers.Tests
 
             Assert.IsNotNull(resp);
         }
+
+        [TestMethod]
+        public void QueryDividendYieldIncreasingDay()
+        {
+            QueryController api = new QueryController();
+
+            var resutl = (ContentResult)api.QueryDividendYieldIncreasingDay(new Model_QueryDividendYieldIncreasingDay.Request { Code = "1101", StartDate = "2020-11-01", EndDate = "2020-11-30" });
+            var resp = JsonConvert.DeserializeObject<Model_QueryPERatioRank.Response>(resutl.Content);
+
+
+            Assert.IsNotNull(resp);
+        }
     }
 }
